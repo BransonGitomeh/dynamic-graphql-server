@@ -5,14 +5,20 @@ let { graphql, buildSchema } = require('graphql');
 let MongoClient = require('mongodb').MongoClient
 let ObjectId = require('mongodb').ObjectId
 let url = 'mongodb://localhost:27017/coola';
-let prodUrl = 'mongodb://branson:a32357377@ds141082.mlab.com:41082/coola'
+let prodUrl = 'mongodb://branson:a323573770@ds141082.mlab.com:41082/coola'
 const request = require('request')
 
-if(process.env.NODE_ENV=='production'){
-  url = prodUrl
+if (process.env.NODE_ENV == 'production') {
+    url = prodUrl
 }
 
 MongoClient.connect(url, function (err, db) {
+    if (err) {
+        console.log(err)
+        console.log("could not connet to the database")
+    } else {
+        console.log("database connected succesfully")
+    }
     var schema = buildSchema(`
           type Query {
             hello: String,
@@ -134,65 +140,67 @@ MongoClient.connect(url, function (err, db) {
         middleware(req, res, next)
     });
 
-    app.listen(process.env.PORT || 3000, () => console.log("Started listening at 3000",url));
+    const port = process.env.PORT || 3000
+
+    app.listen(port, () => console.log(`Started listening at ${port}`, url));
 });
 
-function decorate(prop){
-  let finalRes = spaceToSnake(prop.Type)
+function decorate(prop) {
+    let finalRes = spaceToSnake(prop.Type)
 
-  if(prop.Type)
+    if (prop.Type)
 
-  if(prop.list == true){
-    finalRes = `[${finalRes}]`
-  }
+        if (prop.list == true) {
+            finalRes = `[${finalRes}]`
+        }
 
-  if(prop.required == true){
-    finalRes = `${finalRes}!`
-  }
+    if (prop.required == true) {
+        finalRes = `${finalRes}!`
+    }
 
-  return finalRes
+    return finalRes
 }
 
-function decorate_input(prop){
-  const basicTypes = ['Int', 'String', 'Boolean', 'Float']
+function decorate_input(prop) {
+    const basicTypes = ['Int', 'String', 'Boolean', 'Float']
 
-  let finalRes = spaceToSnake(prop.Type)
+    let finalRes = spaceToSnake(prop.Type)
 
-  if(basicTypes.indexOf(finalRes) == -1){
-    finalRes = "input_" + spaceToSnake(prop.Type)
-  }
+    if (basicTypes.indexOf(finalRes) == -1) {
+        finalRes = "input_" + spaceToSnake(prop.Type)
+    }
 
-  if(prop.list == true){
-    finalRes = `[${finalRes}]`
-  }
+    if (prop.list == true) {
+        finalRes = `[${finalRes}]`
+    }
 
-  if(prop.required == true){
-    finalRes = `${finalRes}!`
-  }
+    if (prop.required == true) {
+        finalRes = `${finalRes}!`
+    }
 
-  return finalRes
+    return finalRes
 }
 
-function spaceToSnake(string){
-  return string.replace(/ /g,"_")
+function spaceToSnake(string) {
+    return string.replace(/ /g, "_")
 }
 
-function checkIfPropRequireList(prop){
-  let finalRes = spaceToSnake(prop.name)
+function checkIfPropRequireList(prop) {
+    let finalRes = spaceToSnake(prop.name)
 
-  if(prop.list == true){
-    finalRes = `${finalRes}(first:Int,after:String,offSet:Int)`
-  }
+    if (prop.list == true) {
+        finalRes = `${finalRes}(first:Int,after:String,offSet:Int)`
+    }
 
-  return finalRes
+    return finalRes
 }
 
 function makeSchema() {
     return new Promise((res, rej) => {
-        request.post({
-            url: "http://localhost:3000/graphql",
-            form: {
-                query: `query te{
+                request.post({
+                            url: "http://localhost:3000/graphql",
+                            form: {
+                                query: `query te{
                           Types {
                             _id
                             name,
@@ -207,13 +215,13 @@ function makeSchema() {
                             }
                           }
                         }`
-            }
-        }, (err, result) => {
-          console.log(err)
-            const data = JSON.parse(result.body).data
-            
-            console.log(data)
-            const queries = `
+                            }
+                        }, (err, result) => {
+                            console.log(err)
+                            const data = JSON.parse(result.body).data
+
+                            console.log(data)
+                            const queries = `
               type Query {
                 ${data.Types.map(type=>`\n# ${type.description} \n 
                   ${spaceToSnake(type.name.toString())}(_id:String) : ${spaceToSnake(type.name.toString())}`)
