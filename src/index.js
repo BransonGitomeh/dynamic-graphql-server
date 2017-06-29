@@ -198,7 +198,7 @@ function checkIfPropRequireList(prop) {
 function makeSchema() {
     return new Promise((res, rej) => {
                 request.post({
-                            url: "http://localhost:3000/graphql",
+                            url: "https://guarded-spire-97737.herokuapp.com/graphql",
                             form: {
                                 query: `query te{
                           Types {
