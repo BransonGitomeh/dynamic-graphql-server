@@ -5,29 +5,41 @@ const app = {
             url: "/graphql",
             method: 'POST',
             data: {
-                query: `query te{
-                  Types {
-                    _id
-                    name
-                  }
-                }`
+                query: `query te($project:String){
+                    Project(_id:$project){
+                        Types {
+                          _id
+                          name
+                        }
+                    }
+                  
+                }`,
+                variables:JSON.stringify({
+                    project:attrs.project
+                })
             }
         }).then(res => {
-            attrs.types = res.data.Types
+            attrs.types = res.data.Project.Types
             m.redraw()
         })
     },
     render: (vnode) => m({
         view: () => m('.app', [
             m("a", {
-                href: `/addType`,
+                href: `/addType/${vnode.attrs.project}`,
                 oncreate: m.route.link,
                 onupdate: m.route.link
             }, "Add types"),
             m("a", {
-                href: `/graphql2`,
+                href: `/graphql2/${vnode.attrs.project}`,
                 target: '_blank'
             }, "Test on graphiql"),
+            m("a", {
+                href: `/`,
+                oncreate: m.route.link,
+                onupdate: m.route.link,
+                target: '_blank'
+            }, "Back"),
             m("br"),
             m("br"),
             vnode.attrs.types.map(type => {
@@ -93,6 +105,49 @@ const props = {
     })
 }
 
+const projects = {
+    onmatch(attrs) {
+        attrs.Projects = []
+        m.request({
+            url: "/graphql",
+            method: 'POST',
+            data: {
+                query: `query te{
+                  Projects {
+                    _id,
+                    name
+                  }
+                }`
+            }
+        }).then(res => {
+            console.log(res)
+            attrs.Projects = res.data.Projects
+            m.redraw()
+        })
+    },
+    render: (vnode) => m({
+        view: () => m('.app', [
+            console.log(vnode),
+            m("a", {
+                href: `/addProject`,
+                oncreate: m.route.link,
+                onupdate: m.route.link
+            }, "Add Project"),
+            m("br"),
+            vnode.attrs.Projects.map(type => {
+                return [
+                    m("br"),
+                    m("a", {
+                        href: `/types/${type._id}`,
+                        oncreate: m.route.link,
+                        onupdate: m.route.link
+                    }, type.name),
+                ]
+            })
+        ])
+    })
+}
+
 
 const addprops = {
     onmatch(attrs) {
@@ -101,10 +156,10 @@ const addprops = {
             url: "/graphql",
             method: 'POST',
             data: {
-                query: `query te{
+                query: `query te(id:String){
                   Types {
-                    _id
-                    name
+                       _id
+                       name
                   }
                 }`
             }
@@ -251,17 +306,18 @@ const addTypes = {
                     url: "/graphql",
                     method: 'POST',
                     data: {
-                        query: `mutation te($name:String,$description:String){
-                              addType(name:$name,description:$description)
+                        query: `mutation te($name:String,$Project:String!,$description:String){
+                              addType(name:$name,Project:$Project,description:$description)
                             }`,
                         variables: JSON.stringify({
                             name: vnode.state.name,
+                            Project:vnode.attrs.project,
                             description: vnode.state.description,
                         })
                     }
                 }).then(res => {
                     vnode.state.types = res.data.Types
-                    m.route.set("/")
+                    m.route.set(`/types/${vnode.attrs.project}`)
                     m.redraw()
                 })
             }
@@ -283,9 +339,62 @@ const addTypes = {
     ])
 }
 
+
+const addProject = {
+    oninit(vnode) {
+        vnode.state.name = ""
+        vnode.state.description = ""
+    },
+    view: (vnode) => m('.app', [
+        m("a", {
+            href: `/`,
+            oncreate: m.route.link,
+            onupdate: m.route.link
+        }, "back"),
+        m("form", {
+            onsubmit() {
+                m.request({
+                    url: "/graphql",
+                    method: 'POST',
+                    data: {
+                        query: `mutation te($name:String,$description:String){
+                              addProject(name:$name,description:$description)
+                            }`,
+                        variables: JSON.stringify({
+                            name: vnode.state.name,
+                            description: vnode.state.description,
+                        })
+                    }
+                }).then(res => {
+                    vnode.state.types = res.data.Types
+                    m.route.set("/")
+                    m.redraw()
+                })
+            }
+        }, [
+            m("input", {
+                placeholder: "Name",
+                oninput: m.withAttr('value', v => vnode.state.name = v),
+                value: vnode.state.name
+            }),
+            m("input", {
+                placeholder: "Project description",
+                onchange: m.withAttr('value', v => vnode.state.description = v),
+                value: vnode.state.description
+            }),
+            m("button", {
+                type: "submit"
+            }, "save")
+        ])
+    ])
+}
+
+
 m.route(document.body, "/", {
-    "/": app,
-    "/addType": addTypes,
+    "/":projects,
+    "/addProject":addProject,
+    "/types/:project": app,
+    "/addType/:project": addTypes,
     "/type/:type_id": props,
     "/addProps/:type_id": addprops
 })
