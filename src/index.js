@@ -1,11 +1,16 @@
 const express = require('express');
 const app = new express();
 const graphqlHTTP = require('express-graphql');
-var { graphql, buildSchema } = require('graphql');
-var MongoClient = require('mongodb').MongoClient
-var ObjectId = require('mongodb').ObjectId
-var url = 'mongodb://localhost:27017/coola';
+let { graphql, buildSchema } = require('graphql');
+let MongoClient = require('mongodb').MongoClient
+let ObjectId = require('mongodb').ObjectId
+let url = 'mongodb://localhost:27017/coola';
+let prodUrl = 'mongodb://branson:a32357377@ds141082.mlab.com:41082/coola'
 const request = require('request')
+
+if(process.env.NODE_ENV=='production'){
+  url = prodUrl
+}
 
 MongoClient.connect(url, function (err, db) {
     var schema = buildSchema(`
@@ -129,7 +134,7 @@ MongoClient.connect(url, function (err, db) {
         middleware(req, res, next)
     });
 
-    app.listen(3000, () => console.log("Started listening at 3000"));
+    app.listen(process.env.PORT || 3000, () => console.log("Started listening at 3000",url));
 });
 
 function decorate(prop){
@@ -250,7 +255,7 @@ function makeSchema() {
                 ${propContaining.Props.map(prop=>`\n# ${prop.description} \n ${spaceToSnake(prop.name)}: ${decorate_input(prop)}`).join(" ")}
               }`).join(" ")}
             `
-            
+
             res(buildSchema((queries + mutations)))
         })
 

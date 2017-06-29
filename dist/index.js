@@ -77,11 +77,16 @@ module.exports = require("mongodb");
 const express = __webpack_require__(2);
 const app = new express();
 const graphqlHTTP = __webpack_require__(3);
-var { graphql, buildSchema } = __webpack_require__(4);
-var MongoClient = __webpack_require__(0).MongoClient;
-var ObjectId = __webpack_require__(0).ObjectId;
-var url = 'mongodb://localhost:27017/coola';
+let { graphql, buildSchema } = __webpack_require__(4);
+let MongoClient = __webpack_require__(0).MongoClient;
+let ObjectId = __webpack_require__(0).ObjectId;
+let url = 'mongodb://localhost:27017/coola';
+let prodUrl = 'mongodb://branson:a32357377@ds141082.mlab.com:41082/coola';
 const request = __webpack_require__(5);
+
+if (process.env.NODE_ENV == 'production') {
+  url = prodUrl;
+}
 
 MongoClient.connect(url, function (err, db) {
   var schema = buildSchema(`
@@ -205,7 +210,7 @@ MongoClient.connect(url, function (err, db) {
     middleware(req, res, next);
   });
 
-  app.listen(3000, () => console.log("Started listening at 3000"));
+  app.listen(process.env.PORT || 3000, () => console.log("Started listening at 3000", url));
 });
 
 function decorate(prop) {
