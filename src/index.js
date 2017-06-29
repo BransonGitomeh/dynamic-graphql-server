@@ -8,7 +8,7 @@ let url = 'mongodb://localhost:27017/coola';
 let prodUrl = 'mongodb://branson:a32357377@ds141082.mlab.com:41082/coola'
 const request = require('request')
 
-if(process.env.PORT){
+if(process.env.NODE_ENV=='production'){
   url = prodUrl
 }
 
