@@ -244,18 +244,18 @@ function makeSchema() {
                 .join(" ")}
               }
 
-              ${data.Types.map(type=>`type ${type.name}Mutations {
+              ${data.Types.map(type=>`type ${spaceToSnake(type.name)}Mutations {
                       Create(
-                          ${type.name}:input_${type.name}
-                      ): ${type.name},
+                          ${spaceToSnake(type.name)}:input_${spaceToSnake(type.name)}
+                      ): ${spaceToSnake(type.name)},
 
                       Update(
-                          ${type.name}:input_${type.name}
-                      ): ${type.name},
+                          ${spaceToSnake(type.name)}:input_${spaceToSnake(type.name)}
+                      ): ${spaceToSnake(type.name)},
 
                       Delete(
-                          ${type.name}:input_${type.name}
-                      ): ${type.name}
+                          ${spaceToSnake(type.name)}:input_${spaceToSnake(type.name)}
+                      ): ${spaceToSnake(type.name)}
                   }`)}
               
 
