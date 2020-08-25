@@ -266,14 +266,14 @@ function checkIfPropRequireList(prop) {
 
 function makeSchema(project_id) {
     return new Promise((res, rej) => {
-                let url = 'http://localhost:3000/graphql'
-                if (process.env.NODE_ENV == 'production') {
-                    url = "https://guarded-spire-97737.herokuapp.com/graphql"
-                }
-                request.post({
-                            url,
-                            form: {
-                                query: `query te($project:String){
+        let url = 'http://localhost:3000/graphql'
+        if (process.env.NODE_ENV == 'production') {
+            url = "https://guarded-spire-97737.herokuapp.com/graphql"
+        }
+        request.post({
+            url,
+            form: {
+                query: `query te($project:String){
                                     Project(_id:$project){
                                       Types {
                                         _id
@@ -290,40 +290,40 @@ function makeSchema(project_id) {
                                       }
                                     }
                                   }`,
-                                variables: JSON.stringify({
-                                    project: project_id
-                                })
-                            }
-                        }, (err, result) => {
-                            console.log(err || result.body)
-                            const data = JSON.parse(result.body).data.Project
+                variables: JSON.stringify({
+                    project: project_id
+                })
+            }
+        }, (err, result) => {
+            console.log(err || result.body)
+            const data = JSON.parse(result.body).data.Project
 
-                            console.log(data)
-                            const queries = `
+            console.log(data)
+            const queries = `
                             type Query {
-                              ${data.Types.map(type=>`\n# ${type.description} \n 
+                              ${data.Types.map(type => `\n# ${type.description} \n 
                                 ${spaceToSnake(type.name.toString())}(_id:String) : ${spaceToSnake(type.name.toString())}`)
-                              .join(" ")}
+                    .join(" ")}
                               
-                              ${data.Types.map(type=>`\n# list of ${type.description} \n 
+                              ${data.Types.map(type => `\n# list of ${type.description} \n 
                                 ${spaceToSnake(type.name.toString())}s : [${spaceToSnake(type.name.toString())}]`)
-                              .join(" ")}
+                    .join(" ")}
                             }
 
-                            ${data.Types.map(propContaining=>`\n# ${propContaining.description}\n type ${spaceToSnake(propContaining.name)} {
-                              ${propContaining.Props.map(prop=>`\n# ${prop.description} \n 
+                            ${data.Types.map(propContaining => `\n# ${propContaining.description}\n type ${spaceToSnake(propContaining.name)} {
+                              ${propContaining.Props.map(prop => `\n# ${prop.description} \n 
                                 ${checkIfPropRequireList(prop)}: ${decorate(prop)}`)
-                              .join(" ")}
+                            .join(" ")}
                             }`).join(" ")}
             `
             const mutations = `
               type Mutation {
-                ${data.Types.map(type=>`\n# ${type.description} \n
+                ${data.Types.map(type => `\n# ${type.description} \n
                   ${spaceToSnake(type.name.toString())}Mutations : ${spaceToSnake(type.name.toString())}Mutations`)
-                .join(" ")}
+                    .join(" ")}
               }
 
-              ${data.Types.map(type=>`type ${spaceToSnake(type.name)}Mutations {
+              ${data.Types.map(type => `type ${spaceToSnake(type.name)}Mutations {
                       Create(
                           ${spaceToSnake(type.name)}:input_${spaceToSnake(type.name)}
                       ): ${spaceToSnake(type.name)},
@@ -338,8 +338,8 @@ function makeSchema(project_id) {
                   }`)}
               
 
-              ${data.Types.map(propContaining=>`\n# ${propContaining.description}\n input input_${spaceToSnake(propContaining.name)} {
-                ${propContaining.Props.map(prop=>`\n# ${prop.description} \n ${spaceToSnake(prop.name)}: ${decorate_input(prop)}`).join(" ")}
+              ${data.Types.map(propContaining => `\n# ${propContaining.description}\n input input_${spaceToSnake(propContaining.name)} {
+                ${propContaining.Props.map(prop => `\n# ${prop.description} \n ${spaceToSnake(prop.name)}: ${decorate_input(prop)}`).join(" ")}
               }`).join(" ")}
             `
 
