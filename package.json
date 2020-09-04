@@ -20,7 +20,7 @@
     "koa-send": "^4.1.0",
     "koa-static": "^3.0.0",
     "koa-static-folder": "^0.1.6",
-    "mongodb": "^2.2.29",
+    "mongodb": "^3.1.13",
     "request": "^2.81.0",
     "webpack": "^3.0.0"
   }
